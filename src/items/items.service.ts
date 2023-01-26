@@ -1,42 +1,74 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { Event } from '../events/entities/event.entity';
+import { CreateItemDto } from './dto/create-item.dto';
+import { UpdateItemDto } from './dto/update-item.dto';
 import { Item } from './entities/items.entity';
 
 @Injectable()
 export class ItemsService {
-  private items: Item[] = [
-    {
-      id: 1,
-      name: 'Item 1',
-    },
-  ];
+  constructor(
+    @InjectModel(Item.name) private readonly itemModel: Model<Item>,
+    @InjectModel(Event.name) private readonly eventModel: Model<Event>,
+    @InjectConnection() private readonly connection: Connection,
+  ) {}
 
-  findAll() {
-    return this.items;
+  findAll(paginationQuery: PaginationQueryDto) {
+    const { limit, offset } = paginationQuery;
+    return this.itemModel.find().skip(offset).limit(limit).exec();
   }
 
-  findOne(id: string) {
-    const item = this.items.find((item) => item.id === +id);
+  async findOne(id: string) {
+    const item = await this.itemModel.findOne({ _id: id }).exec();
     if (!item) {
       throw new NotFoundException(`Item #${id} not found`);
     }
+    await this.changeCount(item);
     return item;
   }
 
-  create(createItemDto: any) {
-    this.items.push(createItemDto);
+  create(createItemDto: CreateItemDto) {
+    const item = new this.itemModel(createItemDto);
+    return item.save();
   }
 
-  update(id: string, updateItemDto: any) {
-    const existingItem = this.findOne(id);
-    if (existingItem) {
-      // update the existing entity
+  async update(id: string, updateItemDto: UpdateItemDto) {
+    const existingItem = await this.itemModel
+      .findOneAndUpdate({ _id: id }, { $set: updateItemDto }, { new: true })
+      .exec();
+    if (!existingItem) {
+      throw new NotFoundException(`Item #${id} not found`);
     }
+    return existingItem;
   }
 
-  remove(id: string) {
-    const itemIndex = this.items.findIndex((item) => item.id === +id);
-    if (itemIndex >= 0) {
-      this.items.splice(itemIndex, 1);
+  async remove(id: string) {
+    const item = await this.findOne(id);
+    return item.remove();
+  }
+
+  async changeCount(item: Item) {
+    const session = await this.connection.startSession();
+    session.startTransaction();
+    try {
+      item.count++;
+
+      const countEvent = new this.eventModel({
+        name: 'count item',
+        type: 'item',
+        payload: { itemId: item.id },
+      });
+
+      await countEvent.save({ session });
+      await item.save({ session });
+
+      await session.commitTransaction();
+    } catch (err) {
+      await session.abortTransaction();
+    } finally {
+      session.endSession();
     }
   }
 }

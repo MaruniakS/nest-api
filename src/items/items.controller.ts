@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemsService } from './items.service';
@@ -17,9 +18,8 @@ export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
   @Get()
-  findAll(@Query() paginationQuery) {
-    const { limit, offset } = paginationQuery;
-    return this.itemsService.findAll();
+  findAll(@Query() paginationQuery: PaginationQueryDto) {
+    return this.itemsService.findAll(paginationQuery);
   }
 
   @Get(':id')
@@ -39,6 +39,6 @@ export class ItemsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.itemsService.create(id);
+    return this.itemsService.remove(id);
   }
 }
