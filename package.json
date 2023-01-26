@@ -1,8 +1,8 @@
 {
   "name": "nest-api",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Nest JS API boilerplate",
+  "author": "Maruniaks",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -71,5 +71,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "engines": {
+    "node": "16.13.0"
   }
 }
