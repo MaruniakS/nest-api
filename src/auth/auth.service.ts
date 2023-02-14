@@ -46,7 +46,7 @@ export class AuthService {
   }
 
   private prepareUserInfo(user: User) {
-    const userInfo = user.toObject();
+    const userInfo = user.toObject({ versionKey: false });
     delete userInfo.password;
     return userInfo;
   }
