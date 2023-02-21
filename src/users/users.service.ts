@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 
 import { User } from './entities/user.entity';
@@ -15,14 +16,21 @@ export class UsersService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
-  findAll() {
-    return this.userModel.find({}, '-password').exec();
+  findAll(paginationQuery: PaginationQueryDto) {
+    const { limit, offset } = paginationQuery;
+    return this.userModel
+      .find()
+      .skip(offset)
+      .limit(limit)
+      .select('-password')
+      .exec();
   }
 
   async create(createUserDto: CreateUserDto) {
     const user = new this.userModel(createUserDto);
     await this.isUserUnique(user.email);
-    return await user.save();
+    const newUser = await user.save();
+    return this.prepareUserInfo(newUser);
   }
 
   async findByEmail(email: string) {
@@ -43,6 +51,12 @@ export class UsersService {
       throw new NotFoundException('User with this id does not exist');
     }
     return user;
+  }
+
+  prepareUserInfo(user: User) {
+    const userInfo = user.toObject({ versionKey: false });
+    delete userInfo.password;
+    return userInfo;
   }
 
   private async isUserUnique(email: string) {
