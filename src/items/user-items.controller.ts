@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { ObjectIdValidationPipe } from '../common/pipes/ObjectIdValidation.pipe';
 import { UsersService } from '../users/users.service';
 import { ItemsService } from './items.service';
 
@@ -13,7 +14,7 @@ export class UserItemsController {
   ) {}
   @Get('items')
   async findUserItems(
-    @Param('userId') userId: string,
+    @Param('userId', new ObjectIdValidationPipe()) userId: string,
     @Query() paginationQuery: PaginationQueryDto,
   ) {
     await this.usersService.findById(userId);

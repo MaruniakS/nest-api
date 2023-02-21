@@ -13,6 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { User } from '../common/decorators/user.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { ObjectIdValidationPipe } from '../common/pipes/ObjectIdValidation.pipe';
 import { User as UserEntity } from '../users/entities/user.entity';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
@@ -28,7 +29,7 @@ export class ItemsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ObjectIdValidationPipe()) id: string) {
     return this.itemsService.findOne(id);
   }
 
@@ -39,12 +40,15 @@ export class ItemsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
+  update(
+    @Param('id', new ObjectIdValidationPipe()) id: string,
+    @Body() updateItemDto: UpdateItemDto,
+  ) {
     return this.itemsService.update(id, updateItemDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ObjectIdValidationPipe()) id: string) {
     return this.itemsService.remove(id);
   }
 }
