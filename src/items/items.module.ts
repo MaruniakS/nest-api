@@ -4,6 +4,8 @@ import { Event, EventSchema } from '../events/entities/event.entity';
 import { ItemsController } from './items.controller';
 import { ItemsService } from './items.service';
 import { Item, ItemSchema } from './entities/item.entity';
+import { UserItemsController } from './user-items.controller';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -17,8 +19,9 @@ import { Item, ItemSchema } from './entities/item.entity';
         schema: EventSchema,
       },
     ]),
+    UsersModule,
   ],
-  controllers: [ItemsController],
+  controllers: [ItemsController, UserItemsController],
   providers: [ItemsService],
 })
 export class ItemsModule {}

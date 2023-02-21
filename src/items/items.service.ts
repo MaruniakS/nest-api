@@ -29,8 +29,8 @@ export class ItemsService {
     return item;
   }
 
-  create(createItemDto: CreateItemDto) {
-    const item = new this.itemModel(createItemDto);
+  create(createItemDto: CreateItemDto, userId: string) {
+    const item = new this.itemModel({ ...createItemDto, user: userId });
     return item.save();
   }
 
@@ -47,6 +47,15 @@ export class ItemsService {
   async remove(id: string) {
     const item = await this.findOne(id);
     return item.remove();
+  }
+
+  findUserItems(userId: string, paginationQuery: PaginationQueryDto) {
+    const { limit, offset } = paginationQuery;
+    return this.itemModel
+      .find({ user: userId })
+      .skip(offset)
+      .limit(limit)
+      .exec();
   }
 
   async changeCount(item: Item) {

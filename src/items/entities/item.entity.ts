@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, SchemaTypes } from 'mongoose';
+import { User } from '../../users/entities/user.entity';
 
 export type ItemDocument = Item & Document;
 
@@ -13,6 +14,9 @@ export class Item extends Document {
 
   @Prop({ default: 0 })
   count: number;
+
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'User' })
+  user: User;
 }
 
 export const ItemSchema = SchemaFactory.createForClass(Item);

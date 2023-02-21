@@ -7,10 +7,13 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiForbiddenResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from '../common/decorators/public.decorator';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
+import { User } from '../common/decorators/user.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { User as UserEntity } from '../users/entities/user.entity';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { ItemsService } from './items.service';
@@ -19,21 +22,20 @@ import { ItemsService } from './items.service';
 export class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
-  @Public()
   @Get()
   async findAll(@Query() paginationQuery: PaginationQueryDto) {
     return this.itemsService.findAll(paginationQuery);
   }
 
-  @ApiForbiddenResponse({ description: 'Forbidden' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.itemsService.findOne(id);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemsService.create(createItemDto);
+  create(@Body() createItemDto: CreateItemDto, @User() user: UserEntity) {
+    return this.itemsService.create(createItemDto, user._id);
   }
 
   @Patch(':id')
