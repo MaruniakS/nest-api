@@ -1,4 +1,4 @@
-import { UserDocument } from '../users/entities/user.entity';
+import { UserDocument } from '../../users/entities/user.entity';
 
 export {};
 
